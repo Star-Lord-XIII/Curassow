@@ -35,10 +35,10 @@ public func serve(_ closure: @escaping (RequestType) -> ResponseType) -> Never  
   let workers = getIntEnv("WEB_CONCURRENCY", default: 1)
 
   command(
-    Option("worker-type", "sync"),
-    Option("workers", workers, description: "The number of processes for handling requests."),
-    VariadicOption("bind", [Address.ip(hostname: "0.0.0.0", port: port)], description: "The address to bind sockets."),
-    Option("timeout", 30, description: "Amount of seconds to wait on a worker without activity before killing and restarting the worker."),
+    Option("worker-type", default: "sync"),
+    Option("workers", default: workers, description: "The number of processes for handling requests."),
+    VariadicOption("bind", default: [Address.ip(hostname: "0.0.0.0", port: port)], description: "The address to bind sockets."),
+    Option("timeout", default: 30, description: "Amount of seconds to wait on a worker without activity before killing and restarting the worker."),
     Flag("daemon", description: "Detaches the server from the controlling terminal and enter the background.")
   ) { workerType, workers, addresses, timeout, daemonize in
     var configuration = Configuration()

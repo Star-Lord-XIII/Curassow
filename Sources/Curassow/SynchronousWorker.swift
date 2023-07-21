@@ -18,13 +18,13 @@ public final class SynchronousWorker : WorkerType {
     return configuration.timeout / 2
   }
 
-  let notify: (Void) -> Void
+  let notify: () -> Void
 
   let application: (RequestType) -> ResponseType
   var isAlive: Bool = false
   let parentPid: pid_t
 
-  public init(configuration: Configuration, logger: Logger, listeners: [Listener], notify: @escaping (Void) -> Void, application: @escaping Application) {
+  public init(configuration: Configuration, logger: Logger, listeners: [Listener], notify: @escaping () -> Void, application: @escaping Application) {
     self.parentPid = getpid()
     self.logger = logger
     self.listeners = listeners.map { Socket(descriptor: $0.fileNumber) }

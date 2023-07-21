@@ -14,10 +14,10 @@ final public class DispatchWorker :  WorkerType {
   let configuration: Configuration
   let logger: Logger
   let listeners: [Socket]
-  let notify: (Void) -> Void
+  let notify: () -> Void
   let application: (RequestType) -> ResponseType
 
-  public init(configuration: Configuration, logger: Logger, listeners: [Listener], notify: @escaping (Void) -> Void, application: @escaping Application) {
+  public init(configuration: Configuration, logger: Logger, listeners: [Listener], notify: @escaping () -> Void, application: @escaping Application) {
     self.logger = logger
     self.listeners = listeners.map { Socket(descriptor: $0.fileNumber) }
     self.configuration = configuration
@@ -78,7 +78,7 @@ final public class DispatchWorker :  WorkerType {
 
   func configureTimer() -> DispatchSourceTimer {
     let timer = DispatchSource.makeTimerSource()
-    timer.scheduleRepeating(deadline: .now(), interval: .seconds(configuration.timeout / 2))
+    timer.schedule(deadline: .now(), repeating: .seconds(configuration.timeout / 2))
 
     timer.setEventHandler { [unowned self] in
       self.notify()

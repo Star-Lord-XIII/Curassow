@@ -23,7 +23,7 @@ public protocol WorkerType {
 
   NOTE: This is invoked from the master process
   */
-  init(configuration: Configuration, logger: Logger, listeners: [Listener], notify: @escaping (Void) -> Void, application: @escaping Application)
+  init(configuration: Configuration, logger: Logger, listeners: [Listener], notify: @escaping () -> Void, application: @escaping Application)
 
   /*** Runs the worker
   The implementation should start listening for requests on the listeners,

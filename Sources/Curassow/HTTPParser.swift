@@ -79,12 +79,12 @@ class HTTPParser {
 
   func parse() throws -> RequestType {
     let top = try readHeaders()
-    var components = top.split(separator: "\r\n")
+    var components = top.split(separator: "\r\n").map(String.init)
     let requestLine = components.removeFirst()
     components.removeLast()
     let requestComponents = requestLine.split(separator: " ")
     if requestComponents.count != 3 {
-      throw HTTPParserError.badSyntax(requestLine)
+      throw HTTPParserError.badSyntax(String(requestLine))
     }
 
     let method = requestComponents[0]
@@ -92,20 +92,20 @@ class HTTPParser {
     let version = requestComponents[2]
 
     if !version.hasPrefix("HTTP/1") {
-      throw HTTPParserError.badVersion(version)
+      throw HTTPParserError.badVersion(String(version))
     }
 
     let headers = parseHeaders(components)
-    let contentSize = headers.filter { $0.0.lowercased() == "content-length" }.flatMap { Int($0.1) }.first
+    let contentSize = headers.filter { $0.0.lowercased() == "content-length" }.compactMap { Int($0.1) }.first
     let payload = ReaderPayload(reader: reader, contentSize: contentSize)
-    return Request(method: method, path: path, headers: headers, content: payload)
+    return Request(method: String(method), path: String(path), headers: headers, content: payload)
   }
 
   func parseHeaders(_ headers: [String]) -> [Header] {
-    return headers.map { $0.split(separator: ":", maxSeparator: 1) }.flatMap {
+      return headers.map { $0.split(separator: ":", maxSplits: 1) }.compactMap {
       if $0.count == 2 {
-        let key = $0[0]
-        var value = $0[1]
+        let key = String($0[0])
+        var value = String($0[1])
 
         if value.hasPrefix(" ") {
           value.remove(at: value.startIndex)
@@ -147,83 +147,6 @@ extension Collection where Iterator.Element == CChar {
     return false
   }
 }
-
-
-extension String {
-  fileprivate func split(separator: String, maxSeparator: Int = Int.max) -> [String] {
-    let scanner = Scanner(self)
-    var components: [String] = []
-    var scans = 0
-
-    while !scanner.isEmpty && scans <= maxSeparator {
-      components.append(scanner.scan(until: separator))
-      scans += 1
-    }
-
-    return components
-  }
-}
-
-
-fileprivate class Scanner {
-  var content: String
-
-  init(_ content: String) {
-    self.content = content
-  }
-
-  var isEmpty: Bool {
-    return content.characters.count == 0
-  }
-
-  func scan(until: String) -> String {
-    if until.isEmpty {
-      return ""
-    }
-
-    var characters: [Character] = []
-
-    while !content.isEmpty {
-      let character = content.characters.first!
-      content = String(content.characters.dropFirst())
-
-      characters.append(character)
-
-      if content.hasPrefix(until) {
-        let index = content.characters.index(content.characters.startIndex, offsetBy: until.characters.count)
-        content = String(content.characters[index..<content.characters.endIndex])
-        break
-      }
-    }
-
-    return String(characters)
-  }
-}
-
-extension String {
-  func hasPrefix(_ prefix: String) -> Bool {
-    let characters = utf16
-    let prefixCharacters = prefix.utf16
-    let start = characters.startIndex
-    let prefixStart = prefixCharacters.startIndex
-
-    if characters.count < prefixCharacters.count {
-      return false
-    }
-
-    for idx in 0..<prefixCharacters.count {
-      let charactersIndex = characters.index(start, offsetBy: idx)
-      let prefixIndex = characters.index(prefixStart, offsetBy: idx)
-
-      if characters[charactersIndex] != prefixCharacters[prefixIndex] {
-        return false
-      }
-    }
-
-    return true
-  }
-}
-
 
 class ReaderPayload : PayloadType, PayloadConvertible, IteratorProtocol {
   let reader: Readable

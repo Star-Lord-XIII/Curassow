@@ -2,4 +2,4 @@
 
 ## 0.6.1
 
-Added support for Swift 3.1.
+Added support for Swift 5.3
